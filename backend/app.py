@@ -115,7 +115,8 @@ def generate_mock_prices():
         "DOT": round(random.uniform(4.8, 5.2), 2),
         "AVAX": round(random.uniform(34, 38), 2),
         "LINK": round(random.uniform(14, 16), 2),
-        "UNI": round(random.uniform(7.5, 8.5), 2)
+        "UNI": round(random.uniform(7.5, 8.5), 2),
+        "BGB": round(random.uniform(0.85, 1.15), 4)
     }
 
 def generate_mock_sentiment():
@@ -257,6 +258,8 @@ def get_sentiment():
 
 @app.get("/whales")
 def get_whales():
+    # Generate fresh whale activity
+    generate_whale_activity()
     update_whale_values()
     return {
         "whales": WHALE_WALLETS,
@@ -289,6 +292,7 @@ def get_whale_history(address: str):
 
 @app.get("/transactions")
 def get_transactions():
+    generate_whale_activity()
     update_whale_values()
     transactions = []
     for whale in WHALE_WALLETS:
@@ -304,11 +308,11 @@ def get_transactions():
         "total": len(transactions),
         "last_update": datetime.now().isoformat()
     }
-
 @app.get("/signals")
 def get_signals():
     sentiment = get_bitget_sentiment()
     prices = get_bitget_prices()
+    generate_whale_activity()  # Add this line
     
     # Calculate risk score
     risk_score = 0
@@ -317,7 +321,7 @@ def get_signals():
     if sentiment.get("score", 50) < 30:
         risk_score += 20
     
-    # Check if any whale recently bought
+    # Check recent whale activity
     recent_buys = 0
     for whale in WHALE_WALLETS:
         for tx in whale.get("history", []):
@@ -343,13 +347,13 @@ def get_signals():
         "recommendation": recommendation,
         "market_condition": "Bullish" if sentiment.get("score", 50) > 55 else "Bearish" if sentiment.get("score", 50) < 45 else "Neutral"
     }
-
 @app.get("/alerts")
 def get_alerts():
+    generate_whale_activity()
     alerts = []
     for whale in WHALE_WALLETS:
         for tx in whale.get("history", []):
-            if tx.get("value_usd", 0) > 10000000:
+            if tx.get("value_usd", 0) > 10000000:  # $10M+ alerts
                 alerts.append({
                     "type": "WHALE_ALERT",
                     "severity": "HIGH" if tx["value_usd"] > 25000000 else "MEDIUM",
@@ -357,6 +361,8 @@ def get_alerts():
                     "time": tx.get("time", "recent"),
                     "transaction": tx
                 })
+    # Keep only latest 5 alerts
+    alerts = alerts[:5]
     return {"alerts": alerts, "total": len(alerts)}
 
 @app.get("/market")
@@ -374,3 +380,50 @@ def get_market():
 
 if __name__ == "__main__":
     uvicorn.run("app:app", host="127.0.0.1", port=8000, reload=True)
+    import random
+from datetime import datetime, timedelta
+
+def generate_whale_activity():
+    """Generate random whale activity to simulate live updates"""
+    actions = ["BUY", "SELL", "MOVE", "STAKE"]
+    coins = ["BTC", "ETH", "SOL", "ADA", "XRP", "MATIC", "DOT", "AVAX", "LINK", "UNI", "BGB"]
+    names = ["WhaleKing", "CryptoGiant", "SmartMoney", "DeepPocket", "BlueWhale", "MoonWhale", "DiamondHands"]
+    
+    # Generate random transactions
+    new_transactions = []
+    for _ in range(random.randint(1, 3)):
+        whale = random.choice(WHALE_WALLETS)
+        coin = random.choice(coins)
+        amount = random.randint(100, 10000)
+        price = get_bitget_prices().get(coin, 50000)
+        action = random.choice(actions)
+        
+        # Update whale's holdings
+        for holding in whale["holdings"]:
+            if holding["symbol"] == coin:
+                if action == "BUY":
+                    holding["amount"] += amount
+                elif action == "SELL":
+                    holding["amount"] = max(0, holding["amount"] - amount)
+                holding["value_usd"] = round(holding["amount"] * price, 0)
+                break
+        
+        # Add to history
+        whale["history"].insert(0, {
+            "action": action,
+            "coin": coin,
+            "amount": amount,
+            "value_usd": round(amount * price, 0),
+            "time": f"{random.randint(1, 59)} min ago"
+        })
+        
+        # Keep only last 10 history items
+        whale["history"] = whale["history"][:10]
+        
+        # Update last active
+        whale["last_active"] = f"{random.randint(1, 59)} min ago"
+    
+    # Update total values
+    update_whale_values()
+    
+    return WHALE_WALLETS
