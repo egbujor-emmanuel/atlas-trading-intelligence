@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATLAS · Trading Intelligence</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js">
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #070b14;
+            color: #e8edf5;
+            min-height: 100vh;
+            padding: 16px;
+            line-height: 1.6;
+            background-image: radial-gradient(ellipse at 20% 20%, rgba(59, 130, 246, 0.08) 0%, transparent 60%), radial-gradient(ellipse at 80% 80%, rgba(99, 102, 241, 0.05) 0%, transparent 50%);
+        }
+        .container {
+            max-width: 1440px;
+            margin: 0 auto;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 10px;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+        }
+        .logo h1 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #f0f4ff, #a5b4fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .logo span {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            display: block;
+            -webkit-text-fill-color: #94a3b8;
+        }
+        .badge {
+            padding: 4px 14px;
+            background: rgba(59, 130, 246, 0.12);
+            border: 1px solid rgba(59, 130, 246, 0.15);
+            border-radius: 100px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #93bbfc;
+            text-transform: uppercase;
+        }
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+            color: #94a3b8;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4ade80;
+            animation: pulse-dot 2s infinite;
+        }
+        @keyframes pulse-dot {
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.4;
+                transform: scale(0.8);
+            }
+        }
+        .btn-refresh {
+            padding: 6px 18px;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.15);
+            border-radius: 100px;
+            color: #93bbfc;
+            font-size: 0.7rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-refresh:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: #3b82f6;
+            color: #fff;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        @media (max-width: 1024px) {
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        @media (max-width: 640px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            padding: 16px 20px;
+            transition: all 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+        .stat-label {
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #64748b;
+        }
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-top: 2px;
+        }
+        .stat-value.gold {
+            color: #fbbf24;
+        }
+        .stat-value.blue {
+            color: #60a5fa;
+        }
+        .stat-value.green {
+            color: #4ade80;
+        }
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1.6fr 1fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 20px 24px;
+            backdrop-filter: blur(4px);
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .card-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #94a3b8;
+        }
+        .card-title .live {
+            font-size: 0.6rem;
+            font-weight: 500;
+            color: #4ade80;
+            text-transform: none;
+            margin-left: 8px;
+        }
+        .whale-item {
+            display: grid;
+            grid-template-columns: 36px 1fr auto auto;
+            gap: 10px;
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            align-items: center;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+        .whale-item:hover {
+            background: rgba(59, 130, 246, 0.1);
+        }
+        .whale-item:last-child {
+            border-bottom: none;
+        }
+        .whale-name {
+            font-weight: 500;
+        }
+        .whale-address {
+            font-size: 0.7rem;
+            color: #64748b;
+            font-family: monospace;
+        }
+        .whale-value {
+            font-weight: 600;
+            color: #fbbf24;
+        }
+        .holding-tag {
+            display: inline-block;
+            padding: 2px 10px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 100px;
+            font-size: 0.65rem;
+            color: #94a3b8;
+            margin-right: 4px;
+        }
+        .holding-tag .coin {
+            color: #e8edf5;
+            font-weight: 600;
+        }
+        .tx-item {
+            display: grid;
+            grid-template-columns: auto 1fr auto auto;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            align-items: center;
+            font-size: 0.8rem;
+        }
+        .tx-item:last-child {
+            border-bottom: none;
+        }
+        .tx-action.buy {
+            color: #4ade80;
+            font-weight: 600;
+        }
+        .tx-action.sell {
+            color: #f87171;
+            font-weight: 600;
+        }
+        .tx-amount {
+            font-weight: 600;
+        }
+        .tx-time {
+            font-size: 0.65rem;
+            color: #64748b;
+        }
+        .alert-item {
+            padding: 10px 14px;
+            background: rgba(248, 113, 113, 0.08);
+            border-left: 3px solid #f87171;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 0.8rem;
+        }
+        .alert-item .severity-high {
+            color: #f87171;
+            font-weight: 700;
+        }
+        .alert-item .severity-medium {
+            color: #fbbf24;
+            font-weight: 700;
+        }
+        .alert-item .time {
+            color: #64748b;
+            font-size: 0.65rem;
+        }
+        .sentiment-number {
+            font-size: 3.5rem;
+            font-weight: 800;
+            text-align: center;
+        }
+        .sentiment-label {
+            text-align: center;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #94a3b8;
+        }
+        .sentiment-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 4px;
+            margin-top: 14px;
+            overflow: hidden;
+        }
+        .sentiment-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.8s ease;
+        }
+        .sentiment-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .sentiment-metric {
+            text-align: center;
+            padding: 10px 8px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+        }
+        .sentiment-metric .label {
+            font-size: 0.55rem;
+            text-transform: uppercase;
+            color: #64748b;
+        }
+        .sentiment-metric .value {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+        .chart-container {
+            width: 100%;
+            height: 200px;
+            position: relative;
+        }
+        .signals-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-top: 8px;
+        }
+        @media (max-width: 640px) {
+            .signals-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        .signal-card {
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 12px;
+            border-left: 3px solid #3b82f6;
+        }
+        .signal-card .label {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            color: #64748b;
+        }
+        .signal-card .value {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+        .api-links {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 10px 0 20px;
+        }
+        .api-links a {
+            color: #60a5fa;
+            text-decoration: none;
+            padding: 4px 14px;
+            background: rgba(59, 130, 246, 0.08);
+            border-radius: 100px;
+            border: 1px solid rgba(59, 130, 246, 0.1);
+            font-size: 0.7rem;
+            transition: all 0.3s;
+        }
+        .api-links a:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: #3b82f6;
+            color: #fff;
+        }
+        .whale-popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .whale-popup-overlay.active {
+            display: flex;
+        }
+        .whale-popup {
+            background: #0f1729;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .whale-popup h2 {
+            color: #fbbf24;
+            font-size: 1.5rem;
+        }
+        .whale-popup .address {
+            color: #64748b;
+            font-family: monospace;
+            font-size: 0.85rem;
+            margin-bottom: 16px;
+        }
+        .whale-popup .close-btn {
+            float: right;
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        .whale-popup .close-btn:hover {
+            color: #f87171;
+        }
+        .history-item {
+            display: grid;
+            grid-template-columns: 60px 50px 80px 80px 80px;
+            gap: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            font-size: 0.8rem;
+            align-items: center;
+        }
+        .history-item .action-buy {
+            color: #4ade80;
+            font-weight: 600;
+        }
+        .history-item .action-sell {
+            color: #f87171;
+            font-weight: 600;
+        }
+        .history-header {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            color: #64748b;
+            padding-bottom: 8px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.05);
+            display: grid;
+            grid-template-columns: 60px 50px 80px 80px 80px;
+            gap: 8px;
+        }
+        footer {
+            margin-top: 32px;
+            padding: 20px 0 12px;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            color: #64748b;
+            font-size: 0.75rem;
+        }
+        footer a {
+            color: #60a5fa;
+            text-decoration: none;
+        }
+        .text-muted {
+            color: #94a3b8;
+            font-size: 0.75rem;
+        }
+        .click-hint {
+            font-size: 0.65rem;
+            color: #60a5fa;
+            cursor: pointer;
+        }
+        @media (max-width: 480px) {
+            .whale-item {
+                grid-template-columns: 28px 1fr auto;
+                font-size: 0.75rem;
+            }
+            .whale-address {
+                display: none;
+            }
+            .history-item {
+                grid-template-columns: 50px 40px 60px 60px 60px;
+                font-size: 0.7rem;
+            }
+            .history-header {
+                grid-template-columns: 50px 40px 60px 60px 60px;
+            }
+            .api-links a {
+                font-size: 0.6rem;
+                padding: 3px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- HEADER -->
+        <header>
+            <div class="logo">
+                <div class="logo-icon">🏛️</div>
+                <div>
+                    <h1>ATLAS</h1>
+                    <span>AI · Trading Intelligence</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <span class="badge">#BitgetHackathon</span>
+                <span class="badge">Track 2: Infra</span>
+                <div class="status">
+                    <span class="status-dot"></span>
+                    <span id="liveStatus">Live</span>
+                    <span id="updateTime" style="font-size:0.65rem;color:#64748b;"></span>
+                </div>
+                <button class="btn-refresh" onclick="refreshAll()"><i class="fas fa-sync-alt"></i> Refresh</button>
+            </div>
+        </header>
+
+        <!-- STATS -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Total Whale Value</div>
+        <div class="stat-value gold" id="totalWhaleValue">$—</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Active Whales</div>
+        <div class="stat-value blue" id="activeWhales">—</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">BTC Price</div>
+        <div class="stat-value gold" id="btcPrice">$—</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">🪙 Bitget Token (BGB)</div>
+        <div class="stat-value gold" id="bgbPrice">$—</div>
+        <div style="font-size:0.7rem;color:#4ade80;" id="bgbChange">▲ Loading...</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Fear & Greed</div>
+        <div class="stat-value" id="fearGreedStat" style="color:#60a5fa;">—</div>
+    </div>
+</div>
+        <!-- MAIN GRID -->
+        <div class="main-grid">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">🐋 Whale Activity <span class="live">● LIVE</span></span>
+                    <span class="click-hint"><i class="fas fa-hand-pointer"></i> Click for history</span>
+                </div>
+                <div id="whaleList">
+                    <div style="color:#64748b;text-align:center;padding:30px 0;">Loading whale data…</div>
+                </div>
+                <div class="text-muted" style="margin-top:12px;">
+                    <i class="fas fa-info-circle"></i> Click any whale to view transaction history
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">📊 Market Sentiment</span>
+                </div>
+                <div class="sentiment-display">
+                    <div class="sentiment-number" id="sentimentScore" style="color:#60a5fa;">—</div>
+                    <div class="sentiment-label" id="sentimentLabel">Loading…</div>
+                    <div class="sentiment-bar">
+                        <div class="sentiment-fill" id="sentimentFill" style="width:0%; background:#60a5fa;"></div>
+                    </div>
+                    <div class="sentiment-metrics">
+                        <div class="sentiment-metric">
+                            <div class="label">Funding Rate</div>
+                            <div class="value" id="fundingRate">—</div>
+                        </div>
+                        <div class="sentiment-metric">
+                            <div class="label">Long/Short</div>
+                            <div class="value" id="longShort">—</div>
+                        </div>
+                        <div class="sentiment-metric">
+                            <div class="label">BTC Dominance</div>
+                            <div class="value" id="btcDominanceStat">—</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CHARTS + SIGNALS -->
+        <div class="main-grid" style="margin-bottom:24px;">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">📈 Price Chart <span class="live">● LIVE</span></span>
+                    <div style="display:flex;gap:8px;">
+                        <button class="btn-refresh" onclick="switchChart('BTC')" style="font-size:0.6rem;padding:4px 12px;">BTC</button>
+                        <button class="btn-refresh" onclick="switchChart('ETH')" style="font-size:0.6rem;padding:4px 12px;">ETH</button>
+                        <button class="btn-refresh" onclick="switchChart('SOL')" style="font-size:0.6rem;padding:4px 12px;">SOL</button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="priceChart"></canvas>
+                </div>
+                <div class="text-muted" style="margin-top:8px;text-align:center;">
+                    <span id="chartCoin">BTC</span> · 10-day price history
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">📡 AI Signals</span>
+                </div>
+                <div class="signals-grid">
+                    <div class="signal-card" style="border-left-color:#4ade80;">
+                        <div class="label">Recommendation</div>
+                        <div class="value" id="recommendation" style="color:#4ade80;">—</div>
+                    </div>
+                    <div class="signal-card" style="border-left-color:#fbbf24;">
+                        <div class="label">Risk Score</div>
+                        <div class="value" id="riskScore" style="color:#fbbf24;">—</div>
+                    </div>
+                    <div class="signal-card" style="border-left-color:#a78bfa;">
+                        <div class="label">Whale Count</div>
+                        <div class="value" id="whaleCount" style="color:#a78bfa;">—</div>
+                    </div>
+                    <div class="signal-card" style="border-left-color:#60a5fa;">
+                        <div class="label">Market Condition</div>
+                        <div class="value" id="marketCondition" style="color:#60a5fa;">—</div>
+                    </div>
+                </div>
+                <div style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.05); display:flex; gap:16px; flex-wrap:wrap; font-size:0.7rem; color:#64748b;">
+                    <span>📋 <a href="http://localhost:8000/signals" target="_blank" style="color:#60a5fa;">API Endpoint</a></span>
+                    <span>⏱ <span id="lastUpdateText">Last update: —</span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- TRANSACTIONS + ALERTS -->
+        <div style="display:grid; grid-template-columns:1.6fr 1fr; gap:20px; margin-bottom:24px;">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">🔄 Recent Whale Transactions <span class="live">● LIVE</span></span>
+                </div>
+                <div id="transactionList">
+                    <div style="color:#64748b;text-align:center;padding:20px 0;">Loading transactions…</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">🔔 Whale Alerts</span>
+                    <span style="font-size:0.6rem;color:#64748b;">High-value movements</span>
+                </div>
+                <div id="alertList">
+                    <div style="color:#64748b;text-align:center;padding:20px 0;">No alerts yet</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- API LINKS -->
+        <div class="api-links">
+            <a href="http://localhost:8000" target="_blank"><i class="fas fa-home"></i> Home</a>
+            <a href="http://localhost:8000/signals" target="_blank"><i class="fas fa-signal"></i> Signals</a>
+            <a href="http://localhost:8000/whales" target="_blank"><i class="fas fa-whale"></i> Whales</a>
+            <a href="http://localhost:8000/prices" target="_blank"><i class="fas fa-dollar-sign"></i> Prices</a>
+            <a href="http://localhost:8000/transactions" target="_blank"><i class="fas fa-exchange-alt"></i> Transactions</a>
+            <a href="http://localhost:8000/alerts" target="_blank"><i class="fas fa-bell"></i> Alerts</a>
+            <a href="http://localhost:8000/logs" target="_blank"><i class="fas fa-file-alt"></i> Logs</a>
+            <a href="http://localhost:8000/docs" target="_blank"><i class="fas fa-book"></i> API Docs</a>
+        </div>
+
+        <!-- WHALE POPUP -->
+        <div class="whale-popup-overlay" id="whalePopup">
+            <div class="whale-popup">
+                <button class="close-btn" onclick="closeWhalePopup()">✕</button>
+                <h2 id="popupWhaleName">🐋 Whale</h2>
+                <div class="address" id="popupWhaleAddress">0x...</div>
+                <div style="margin-bottom:8px; color:#94a3b8; font-size:0.75rem;">📊 Transaction History</div>
+                <div class="history-header">
+                    <span>Action</span>
+                    <span>Coin</span>
+                    <span>Amount</span>
+                    <span>Value</span>
+                    <span>Time</span>
+                </div>
+                <div id="popupHistoryList">
+                    <div style="color:#64748b;text-align:center;padding:20px 0;">Loading history…</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <footer>
+            Built for <a href="https://bitget.com" target="_blank">Bitget Builder Base Camp</a> 🚀 Track 2: Trading Infrastructure
+            <br><small>ATLAS v2.0 — AI-Powered Trading Intelligence</small>
+        </footer>
+    </div>
+
+    <script>
+        // ============================================
+        // ATLAS v2.0 - FULL WORKING JAVASCRIPT
+        // ============================================
+
+        const API_URL = 'http://localhost:8000';
+        let priceChart = null;
+        let currentChartCoin = 'BTC';
+
+        // ============================================
+        // WHALE POPUP
+        // ============================================
+
+        function openWhalePopup(whaleName, address, history) {
+            console.log('🐋 Opening popup for:', whaleName);
+            document.getElementById('popupWhaleName').textContent = '🐋 ' + whaleName;
+            document.getElementById('popupWhaleAddress').textContent = address;
+
+            const list = document.getElementById('popupHistoryList');
+            if (history && history.length > 0) {
+                list.innerHTML = history.map(function(tx) {
+                    return '<div class="history-item">' +
+                        '<span class="action-' + tx.action.toLowerCase() + '">' + tx.action + '</span>' +
+                        '<span>' + tx.coin + '</span>' +
+                        '<span>' + Number(tx.amount).toLocaleString() + '</span>' +
+                        '<span>$' + (Number(tx.value_usd) / 1000000).toFixed(2) + 'M</span>' +
+                        '<span style="color:#64748b;font-size:0.7rem;">' + tx.time + '</span>' +
+                        '</div>';
+                }).join('');
+            } else {
+                list.innerHTML = '<div style="color:#64748b;text-align:center;padding:20px 0;">No transaction history available</div>';
+            }
+            document.getElementById('whalePopup').classList.add('active');
+        }
+
+        function closeWhalePopup() {
+            document.getElementById('whalePopup').classList.remove('active');
+        }
+
+        document.getElementById('whalePopup').addEventListener('click', function(e) {
+            if (e.target === this) closeWhalePopup();
+        });
+
+        // ============================================
+        // CHART
+        // ============================================
+
+        function initChart(coin) {
+            coin = coin || 'BTC';
+            var canvas = document.getElementById('priceChart');
+            if (!canvas) return;
+            var ctx = canvas.getContext('2d');
+            if (priceChart) priceChart.destroy();
+
+            var data = [62000, 63500, 64000, 62800, 64500, 65000, 64800, 65200, 64900, 65500];
+            if (coin === 'ETH') data = [3200, 3300, 3350, 3250, 3400, 3450, 3420, 3480, 3500, 3550];
+            if (coin === 'SOL') data = [130, 135, 140, 138, 145, 148, 142, 150, 152, 155];
+
+            priceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Day1', 'Day2', 'Day3', 'Day4', 'Day5', 'Day6', 'Day7', 'Day8', 'Day9', 'Day10'],
+                    datasets: [{
+                        label: coin + ' Price (USD)',
+                        data: data,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59,130,246,0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#3b82f6',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 1,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#94a3b8', font: { size: 10 } }
+                        }
+                    },
+                    scales: {
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { size: 9 } } },
+                        x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 9 } } }
+                    }
+                }
+            });
+            document.getElementById('chartCoin').textContent = coin;
+            currentChartCoin = coin;
+        }
+
+        function switchChart(coin) { initChart(coin); }
+
+        // ============================================
+        // FETCH FUNCTIONS
+        // ============================================
+
+        async function fetchWhales() {
+            try {
+                var res = await fetch(API_URL + '/whales');
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                var data = await res.json();
+                var list = document.getElementById('whaleList');
+
+                if (data.whales && data.whales.length > 0) {
+                    list.innerHTML = data.whales.map(function(w) {
+                        var holdingsHtml = w.holdings.map(function(h) {
+                            return '<span class="holding-tag"><span class="coin">' + h.symbol + '</span> ' + (Number(h
+                                .amount) / 1000).toFixed(1) + 'K</span>';
+                        }).join('');
+
+                        var historyStr = JSON.stringify(w.history || []).replace(/"/g, '&quot;');
+
+                        return '<div class="whale-item" onclick="openWhalePopup(\'' + w.name + '\', \'' + w.address +
+                            '\', ' + JSON.stringify(w.history || []) + ')">' +
+                            '<span class="whale-icon">🐋</span>' +
+                            '<div>' +
+                            '<div class="whale-name">' + w.name + '</div>' +
+                            '<div class="whale-address">' + w.address + '</div>' +
+                            '<div style="margin-top:4px;">' + holdingsHtml + '</div>' +
+                            '</div>' +
+                            '<div class="whale-value">$' + (Number(w.total_value) / 1e6).toFixed(1) + 'M</div>' +
+                            '<div style="font-size:0.65rem;color:#64748b;">' + (w.last_active || 'recent') + '</div>' +
+                            '</div>';
+                    }).join('');
+                } else {
+                    list.innerHTML = '<div style="color:#64748b;text-align:center;padding:30px 0;">No whale data available</div>';
+                }
+                document.getElementById('totalWhaleValue').textContent = data.total_value ? '$' + (Number(data.total_value) / 1e9)
+                    .toFixed(2) + 'B' : '$—';
+                document.getElementById('activeWhales').textContent = data.total_whales || '—';
+                document.getElementById('whaleCount').textContent = data.total_whales || '—';
+            } catch (e) {
+                console.error('Whale fetch error:', e);
+                document.getElementById('whaleList').innerHTML =
+                '<div style="color:#f87171;text-align:center;padding:30px 0;">⚠️ Connection error</div>';
+            }
+        }
+
+        async function fetchTransactions() {
+            try {
+                var res = await fetch(API_URL + '/transactions');
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                var data = await res.json();
+                var list = document.getElementById('transactionList');
+                if (!list) return;
+
+                if (data.transactions && data.transactions.length > 0) {
+                    list.innerHTML = data.transactions.slice(0, 8).map(function(t) {
+                        return '<div class="tx-item">' +
+                            '<span style="font-weight:500;">' + t.whale + '</span>' +
+                            '<span>' + t.coin + ' ' + Number(t.amount).toLocaleString() + '</span>' +
+                            '<span class="tx-amount">$' + (Number(t.value_usd) / 1e6).toFixed(2) + 'M</span>' +
+                            '<span class="tx-action ' + t.action.toLowerCase() + '">' + t.action + '</span>' +
+                            '<span class="tx-time">' + t.time + '</span>' +
+                            '</div>';
+                    }).join('');
+                } else {
+                    list.innerHTML = '<div style="color:#64748b;text-align:center;padding:20px 0;">No recent transactions</div>';
+                }
+            } catch (e) {
+                console.warn('Transaction fetch error:', e);
+            }
+        }
+
+        async function fetchAlerts() {
+            try {
+                var res = await fetch(API_URL + '/alerts');
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                var data = await res.json();
+                var list = document.getElementById('alertList');
+                if (!list) return;
+
+                if (data.alerts && data.alerts.length > 0) {
+                    list.innerHTML = data.alerts.map(function(a) {
+                        return '<div class="alert-item">' +
+                            '<div>' +
+                            '<span class="severity-' + a.severity.toLowerCase() + '">' + a.severity + '</span>' +
+                            '<span style="margin-left:8px;">' + a.message + '</span>' +
+                            '</div>' +
+                            '<div class="time">' + a.time + '</div>' +
+                            '</div>';
+                    }).join('');
+                } else {
+                    list.innerHTML = '<div style="color:#64748b;text-align:center;padding:20px 0;">✅ No whale alerts</div>';
+                }
+            } catch (e) {
+                console.warn('Alerts fetch error:', e);
+            }
+        }
+
+        async function fetchSentiment() {
+            try {
+                var res = await fetch(API_URL + '/sentiment');
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                var data = await res.json();
+                var score = data.score || 50;
+                var level = data.level || 'Neutral';
+                document.getElementById('sentimentScore').textContent = score;
+                document.getElementById('sentimentLabel').textContent = level;
+                var colorMap = { 'Extreme Fear': '#f87171', 'Fear': '#fb923c', 'Neutral': '#fbbf24', 'Greed': '#4ade80',
+                    'Extreme Greed': '#34d399' };
+                var color = colorMap[level] || '#60a5fa';
+                document.getElementById('sentimentScore').style.color = color;
+                document.getElementById('sentimentFill').style.background = color;
+                document.getElementById('sentimentFill').style.width = score + '%';
+                document.getElementById('fundingRate').textContent = data.funding_rate ? (data.funding_rate * 100).toFixed(3) +
+                    '%' : '—';
+                document.getElementById('longShort').textContent = data.long_short_ratio || '—';
+                document.getElementById('btcDominanceStat').textContent = data.btc_dominance ? data.btc_dominance + '%' : '—';
+                document.getElementById('fearGreedStat').textContent = score;
+                document.getElementById('fearGreedStat').style.color = color;
+            } catch (e) {
+                console.warn('Sentiment fetch error:', e);
+            }
+        }
+
+        async function fetchSignals() {
+            try {
+                var res = await fetch(API_URL + '/signals');
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                var data = await res.json();
+                var risk = data.risk || { score: 0, level: 'Low' };
+                document.getElementById('recommendation').textContent = data.recommendation || '—';
+                document.getElementById('riskScore').textContent = risk.score + '/100';
+                document.getElementById('riskLevelStat').textContent = risk.level;
+                document.getElementById('marketCondition').textContent = data.market_condition || '—';
+                var riskColors = { 'Low': '#4ade80', 'Medium': '#fbbf24', 'High': '#f87171' };
+                var recColors = { 'Opportunity': '#4ade80', 'Normal': '#fbbf24', 'Caution': '#f87171' };
+                document.getElementById('riskLevelStat').style.color = riskColors[risk.level] || '#4ade80';
+                document.getElementById('riskScore').style.color = riskColors[risk.level] || '#4ade80';
+                document.getElementById('recommendation').style.color = recColors[data.recommendation] || '#4ade80';
+            } catch (e) {
+                console.warn('Signals fetch error:', e);
+            }
+        }
+
+        async function fetchPrices() {
+    try {
+        var res = await fetch(API_URL + '/prices');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        var data = await res.json();
+        var prices = data.prices || {};
+        
+        document.getElementById('btcPrice').textContent = prices.BTC ? '$' + Number(prices.BTC).toLocaleString() : '$—';
+        
+        // ✅ ADD BGB PRICE
+        var bgbPrice = prices.BGB || 0;
+        document.getElementById('bgbPrice').textContent = bgbPrice ? '$' + Number(bgbPrice).toFixed(4) : '$—';
+        
+        // ✅ ADD BGB 24h CHANGE (simulated)
+        var change = (Math.random() - 0.3) * 5;
+        var changeEl = document.getElementById('bgbChange');
+        if (change >= 0) {
+            changeEl.textContent = '▲ +' + change.toFixed(2) + '%';
+            changeEl.style.color = '#4ade80';
+        } else {
+            changeEl.textContent = '▼ ' + change.toFixed(2) + '%';
+            changeEl.style.color = '#f87171';
+        }
+        
+        // Update chart
+        if (prices[currentChartCoin] && priceChart) {
+            var chartData = priceChart.data.datasets[0].data;
+            chartData.shift();
+            chartData.push(Number(prices[currentChartCoin]));
+            priceChart.update();
+        }
+        
+        var now = new Date();
+        document.getElementById('updateTime').textContent = now.toLocaleTimeString();
+        document.getElementById('lastUpdateText').textContent = 'Last update: ' + now.toLocaleTimeString();
+        
+    } catch (e) {
+        console.warn('Price fetch error:', e);
+    }
+}
+        // ============================================
+        // REFRESH ALL
+        // ============================================
+
+        async function refreshAll() {
+            document.getElementById('liveStatus').textContent = 'Refreshing…';
+            await Promise.all([
+                fetchWhales(),
+                fetchTransactions(),
+                fetchSentiment(),
+                fetchSignals(),
+                fetchAlerts(),
+                fetchPrices()
+            ]);
+            document.getElementById('liveStatus').textContent = 'Live';
+        }
+
+        // ============================================
+        // AUTO REFRESH
+        // ============================================
+
+        setInterval(refreshAll, 10000);
+
+        // ============================================
+        // INIT
+        // ============================================
+
+        setTimeout(function() {
+            console.log('🏛️ ATLAS initializing...');
+            initChart('BTC');
+            refreshAll();
+            console.log('✅ ATLAS ready! Click any whale to see history.');
+        }, 500);
+    </script>
+
+</body>
+</html>
